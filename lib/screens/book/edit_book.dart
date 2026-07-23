@@ -29,18 +29,18 @@ class _EditBookScreenState extends State<EditBookScreen> {
   @override
   void initState() {
     super.initState();
-    bookIdController = TextEditingController();
-    bookTitleEnController = TextEditingController();
-    bookTitleArController = TextEditingController();
-    authorEnController = TextEditingController();
-    authorArController = TextEditingController();
-    descriptionEnController = TextEditingController();
-    descriptionArController = TextEditingController();
-    categoryController = TextEditingController();
-    imageUrlController = TextEditingController();
-    audioUrlController = TextEditingController();
-    pdfUrlController = TextEditingController();
-    priceController = TextEditingController();
+    bookIdController = TextEditingController(text: directBook.bookId);
+    bookTitleEnController = TextEditingController(text: directBook.bookTitleEn);
+    bookTitleArController = TextEditingController(text: directBook.bookTitleAr);
+    authorEnController = TextEditingController(text: directBook.bookAuthorEn);
+    authorArController = TextEditingController(text: directBook.bookAuthorAr);
+    descriptionEnController = TextEditingController(text: directBook.bookDescriptionEn);
+    descriptionArController = TextEditingController(text: directBook.bookDescriptionAr);
+    categoryController = TextEditingController(text: directBook.bookCategory);
+    imageUrlController = TextEditingController(text: directBook.bookImageUrl);
+    audioUrlController = TextEditingController(text: directBook.bookAudioUrl);
+    pdfUrlController = TextEditingController(text: directBook.bookPdfUrl);
+    priceController = TextEditingController(text: "${directBook.bookPrice}");
   }
 
   @override
@@ -117,14 +117,14 @@ class _EditBookScreenState extends State<EditBookScreen> {
       'category': bookCategory,
     };
     try {
-     final query = await FirebaseFirestore.instance
-    .collection('books')
-    .where('ID', isEqualTo: bookId)
-    .get();
+      final query = await FirebaseFirestore.instance
+          .collection('books')
+          .where('ID', isEqualTo: directBook.bookId)
+          .get();
 
-    for (final doc in query.docs) {
-      await doc.reference.set(updateData, SetOptions(merge: true));
-    }
+      for (final doc in query.docs) {
+        await doc.reference.set(updateData, SetOptions(merge: true));
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -278,7 +278,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
     TextEditingController controller,
     String fillText,
   ) {
-    controller.text = fillText;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
       decoration: BoxDecoration(
@@ -295,6 +295,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
         ],
       ),
       child: TextField(
+        
         cursorColor: Colors.black87,
         strutStyle: StrutStyle(height: 1.5),
         controller: controller,

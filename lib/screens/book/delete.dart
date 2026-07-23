@@ -1,5 +1,6 @@
 import 'package:bayt_alhikma_dashboard/model/book.dart';
 import 'package:bayt_alhikma_dashboard/utils/styles.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -17,8 +18,48 @@ class _deleteBookState extends State<deleteBook> {
   @override
   void initState() {
     super.initState();
-    // بدء عملية الجلب مرة واحدة عند تهيئة الواجهة
+
     _booksFuture = fetchBooks();
+  }
+
+  Future<void> deleteBook(Book deletedBook) async {
+    if (Firebase.apps.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Firebase is not initialized. Configure Firebase first.',
+          ),
+        ),
+      );
+      return;
+    }
+    try {
+      final query = await FirebaseFirestore.instance
+          .collection('books')
+          .where('ID', isEqualTo: deletedBook.bookId)
+          .get();
+
+      for (var doc in query.docs) {
+        await doc.reference.delete();
+      }
+
+      setState(() {
+        _booksFuture = fetchBooks();
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Book deleted successfully')),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('Failed to delete book: $e');
+      debugPrintStack(stackTrace: stackTrace);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to delete book: $e')));
+    }
   }
 
   // نقل الدالة إلى داخل الـ State class لعدم تركها كـ Global Function
@@ -129,15 +170,89 @@ class _deleteBookState extends State<deleteBook> {
                 subtitle: Text(book.bookAuthorEn),
               ),
             ),
-            InkWell(
-              onTap: () {},
-              child: IconButton(
-                onPressed: () {},
-                icon: Padding(
-                  padding: EdgeInsetsGeometry.all(0.1),
-                  child: Icon(Icons.delete_forever, color: Colors.red),
-                ),
+            IconButton(
+              onPressed: () {
+                // استدعاء showDialog لظهور الرسالة بشكل طافي
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return warnningMessage(context,book); // تمرير الـ context
+                  },
+                );
+              },
+              icon: const Padding(
+                padding: EdgeInsets.all(0.1),
+                child: Icon(Icons.delete_forever, color: Colors.red),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Dialog warnningMessage(BuildContext context, Book deletedBook) {
+    return Dialog(
+      backgroundColor: Colors.transparent, // لجعل الحواف والظل تظهر بشكل صحيح
+      child: Container(
+        padding: const EdgeInsets.all(
+          20.0,
+        ), // إضافة مسافات داخلية لترتيب المحتوى
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(5, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min, // مهم جداً: يمنع الرسالة من التمدد لملء الشاشة
+          children: [
+            const Text(
+              'Are you sure you want to delete this book?',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20), // مسافة بين النص والأزرار
+            Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceEvenly, // توزيع الأزرار بشكل متساوٍ
+              children: [
+                InkWell(
+                  onTap: () {
+                    deleteBook(deletedBook);
+                    Navigator.pop(context);
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      'Yes',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      'No',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
