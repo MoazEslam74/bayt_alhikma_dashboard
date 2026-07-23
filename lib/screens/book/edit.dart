@@ -1,4 +1,5 @@
 import 'package:bayt_alhikma_dashboard/model/book.dart';
+import 'package:bayt_alhikma_dashboard/screens/book/edit_book.dart';
 import 'package:bayt_alhikma_dashboard/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -93,7 +94,7 @@ class _editBookState extends State<editBook> {
         // Navigate to the edit book screen with the selected book's data
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const editBook()),
+          MaterialPageRoute(builder: (context) =>  EditBookScreen(directBook: book,)),
         );
       },
       child: Padding(
