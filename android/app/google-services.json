@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "448956870678",
+    "project_id": "bayet-el-hikma",
+    "storage_bucket": "bayet-el-hikma.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:448956870678:android:3552979acb3b5ca71cc537",
+        "android_client_info": {
+          "package_name": "com.example.bayt_alhikma_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhZVz1rcOIaLb0RUt6q-3SBR-NKl2r4Eg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:448956870678:android:7de8517e7c5670351cc537",
+        "android_client_info": {
+          "package_name": "com.example.bayt_alhikma_dashboard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhZVz1rcOIaLb0RUt6q-3SBR-NKl2r4Eg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
