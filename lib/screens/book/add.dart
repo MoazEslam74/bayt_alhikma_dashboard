@@ -1,3 +1,4 @@
+import 'package:bayt_alhikma_dashboard/view_model/LLM_call.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,9 @@ class _addBookState extends State<addBook> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Firebase is not initialized. Configure Firebase first.'),
+          content: Text(
+            'Firebase is not initialized. Configure Firebase first.',
+          ),
         ),
       );
       return;
@@ -115,15 +118,64 @@ class _addBookState extends State<addBook> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Book added successfully')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Book added successfully')));
     } catch (e, stackTrace) {
       debugPrint('Failed to save book: $e');
       debugPrintStack(stackTrace: stackTrace);
       if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save book: $e')));
+    }
+  }
+
+
+  void onGenerateDescriptionPressed(String lang) async {
+    // التأكد من أن المستخدم أدخل اسم الكتاب والكاتب أولاً
+    if (bookTitleEnController.text.isEmpty || authorEnController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save book: $e')),
+        const SnackBar(
+          content: Text('Please enter Book Title and Author first!'),
+        ),
+      );
+      return;
+    }
+
+    // إظهار مؤشر تحميل (Loading) للمستخدم
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Generating description with AI...')),
+    );
+    String? generatedDescription;
+    if (lang == "AR") {
+      generatedDescription = await generateBookDescription(
+        bookTitle: bookTitleArController.text,
+        authorName: authorArController.text,
+        language: 'Arabic',
+      );
+    } else {
+      generatedDescription = await generateBookDescription(
+        bookTitle: bookTitleEnController.text,
+        authorName: authorEnController.text,
+        language: 'English',
+      );
+    }
+
+    // إذا نجح التوليد، نضع النص داخل الـ Controller الخاص بالوصف
+    if (generatedDescription != null) {
+      setState(() {
+        if(lang=="AR"){
+          descriptionArController.text = generatedDescription ?? "";
+        
+        }else{
+          descriptionEnController.text = generatedDescription ?? "";
+        }
+        
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to generate description.')),
       );
     }
   }
@@ -132,7 +184,10 @@ class _addBookState extends State<addBook> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppStyles.pageBackground,
-      appBar: AppBar(title: const Text('Add Book'),backgroundColor: AppStyles.lightBeige,),
+      appBar: AppBar(
+        title: const Text('Add Book'),
+        backgroundColor: AppStyles.lightBeige,
+      ),
       body: Container(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -152,10 +207,20 @@ class _addBookState extends State<addBook> {
               buildTextField('Author (AR)', authorArController),
               SizedBox(height: 20),
 
-              buildTextField('Description (EN)', descriptionEnController),
+              SpecialTextFieldWidget(
+                label: "Description (EN)",
+                controller: descriptionEnController,
+                langFlag: 'EN',
+                onGenerateDescriptionPressed: onGenerateDescriptionPressed,
+              ),
               SizedBox(height: 20),
 
-              buildTextField('Description (AR)', descriptionArController),
+              SpecialTextFieldWidget(
+                label: 'Description (AR)',
+                controller: descriptionArController,
+                langFlag: 'AR',
+                onGenerateDescriptionPressed: onGenerateDescriptionPressed,
+              ),
               SizedBox(height: 20),
 
               buildTextField('Category', categoryController),
@@ -231,15 +296,107 @@ class _addBookState extends State<addBook> {
         ],
       ),
       child: TextField(
-        
         cursorColor: Colors.black87,
         strutStyle: StrutStyle(height: 1.5),
         controller: controller,
         decoration: InputDecoration(
-          
           labelText: label,
           labelStyle: TextStyle(fontSize: 16, color: Colors.black54),
-          
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+}
+
+class SpecialTextFieldWidget extends StatefulWidget {
+  final String label;
+  final TextEditingController controller;
+  final String langFlag;
+  final Function(String lang) onGenerateDescriptionPressed;
+  const SpecialTextFieldWidget({
+    Key? key,
+    required this.label,
+    required this.controller,
+    required this.langFlag,
+    required this.onGenerateDescriptionPressed,
+  }) : super(key: key);
+
+  @override
+  State<SpecialTextFieldWidget> createState() => _SpecialTextFieldWidgetState();
+}
+
+class _SpecialTextFieldWidgetState extends State<SpecialTextFieldWidget> {
+  // إنشاء FocusNode لمراقبة حالة التركيز (الضغط)
+  final FocusNode _focusNode = FocusNode();
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // إضافة مستمع للـ FocusNode لتحديث واجهة المستخدم عند التغيير
+    _focusNode.addListener(() {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    // يجب التخلص من الـ FocusNode لتجنب تسريب الذاكرة (Memory Leak)
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: AppStyles.primaryGold.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(3, 3),
+          ),
+        ],
+      ),
+      child: TextField(
+        focusNode: _focusNode, // ربط الـ FocusNode بحقل النص
+        cursorColor: Colors.black87,
+        strutStyle: const StrutStyle(height: 1.5),
+        controller: widget.controller,
+        decoration: InputDecoration(
+          labelText: widget.label,
+          labelStyle: const TextStyle(fontSize: 16, color: Colors.black54),
+
+          // شرط: إذا كان الحقل مضغوطاً عليه (_isFocused = true) اعرض الزر، وإلا اجعله null
+          suffixIcon: _isFocused
+              ? InkWell(
+                  splashColor: AppStyles.primaryGold,
+                  focusColor: AppStyles.primaryGold,
+                  radius: 5.0,
+                  onTap: () {
+                    widget.onGenerateDescriptionPressed(widget.langFlag);
+                  },
+                  child: Column(
+                    children: [
+                      Icon(Icons.bolt, color: AppStyles.primaryGold),
+                      Text(
+                        'AI',
+                        style: TextStyle(color: AppStyles.primaryGold),
+                      ),
+                    ],
+                  ),
+                )
+              : null,
+
+          border: InputBorder.none,
         ),
       ),
     );
