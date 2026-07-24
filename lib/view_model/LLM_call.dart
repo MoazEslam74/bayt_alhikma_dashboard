@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<String?> generateBookDescription({
   required String bookTitle,
@@ -8,8 +8,7 @@ Future<String?> generateBookDescription({
   required String language,
 }) async {
   // ⚠️ لا تنسَ وضع مفتاح الـ API الخاص بك
-  const String groqApiKey =
-      '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';
+  String groqApiKey = dotenv.env['groqApiKey'] ?? '';
   const String endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
   // تجهيز الـ Prompt بشكل ديناميكي

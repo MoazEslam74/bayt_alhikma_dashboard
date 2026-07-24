@@ -59,7 +59,7 @@ flutter:
 
   uses-material-design: true
   assets:
-    # - .env
+    - .env
     - images/
     - images/avatars/1.png
     - images/avatars/2.png
