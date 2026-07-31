@@ -11,6 +11,12 @@ class deleteChats extends StatefulWidget {
 class _deleteChatsState extends State<deleteChats> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      backgroundColor: AppStyles.pageBackground,
+      appBar: AppBar(
+        title: const Text('Delete User'),
+        backgroundColor: AppStyles.lightBeige,
+      ),
+    );
   }
 }

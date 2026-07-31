@@ -12,7 +12,7 @@ class deleteBook extends StatefulWidget {
 }
 
 class _deleteBookState extends State<deleteBook> {
-  // تعريف متغير لتخزين جلب البيانات
+  
   late Future<List<Book>> _booksFuture;
 
   @override
@@ -62,7 +62,7 @@ class _deleteBookState extends State<deleteBook> {
     }
   }
 
-  // نقل الدالة إلى داخل الـ State class لعدم تركها كـ Global Function
+  
   Future<List<Book>> fetchBooks() async {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -87,7 +87,7 @@ class _deleteBookState extends State<deleteBook> {
       }).toList();
     } catch (e) {
       print('Error fetching books: $e');
-      throw e; // إرجاع الخطأ ليتم التقاطه في FutureBuilder
+      throw e; 
     }
   }
 
@@ -99,29 +99,29 @@ class _deleteBookState extends State<deleteBook> {
         title: const Text('Delete Book'),
         backgroundColor: AppStyles.lightBeige,
       ),
-      // استخدام FutureBuilder للتعامل مع حالات الانتظار والبيانات والأخطاء
+      
       body: FutureBuilder<List<Book>>(
         future: _booksFuture,
         builder: (context, snapshot) {
-          // حالة التحميل
+          // Loading state 
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          // حالة وجود خطأ
+          // Error state
           else if (snapshot.hasError) {
             return Center(
               child: Text('Error loading books: ${snapshot.error}'),
             );
           }
-          // حالة عدم وجود بيانات
+          // No data state
           else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No books available.'));
           }
 
-          // تم تحميل البيانات بنجاح
+          
           final books = snapshot.data!;
 
-          // استخدام ListView.builder أفضل من Column للقوائم القابلة للتمرير
+          
           return ListView.builder(
             itemCount: books.length,
             itemBuilder: (context, index) {
@@ -156,14 +156,14 @@ class _deleteBookState extends State<deleteBook> {
               width: 100,
               height: 150,
               fit: BoxFit.cover,
-              // إضافة معالجة الأخطاء للصور التالفة أو غير الموجودة
+              // Error in the image 
               errorBuilder: (context, error, stackTrace) => const SizedBox(
                 width: 100,
                 height: 150,
                 child: Icon(Icons.broken_image),
               ),
             ),
-            // تغليف ListTile بـ Expanded لمنع أخطاء الـ Overflow داخل الـ Row
+            
             Expanded(
               child: ListTile(
                 title: Text(book.bookTitleEn),
@@ -172,11 +172,11 @@ class _deleteBookState extends State<deleteBook> {
             ),
             IconButton(
               onPressed: () {
-                // استدعاء showDialog لظهور الرسالة بشكل طافي
+                
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return warnningMessage(context,book); // تمرير الـ context
+                    return warnningMessage(context,book); 
                   },
                 );
               },
@@ -193,11 +193,11 @@ class _deleteBookState extends State<deleteBook> {
 
   Dialog warnningMessage(BuildContext context, Book deletedBook) {
     return Dialog(
-      backgroundColor: Colors.transparent, // لجعل الحواف والظل تظهر بشكل صحيح
+      backgroundColor: Colors.transparent, 
       child: Container(
         padding: const EdgeInsets.all(
           20.0,
-        ), // إضافة مسافات داخلية لترتيب المحتوى
+        ), 
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8.0),
@@ -212,17 +212,17 @@ class _deleteBookState extends State<deleteBook> {
         ),
         child: Column(
           mainAxisSize:
-              MainAxisSize.min, // مهم جداً: يمنع الرسالة من التمدد لملء الشاشة
+              MainAxisSize.min, 
           children: [
             const Text(
               'Are you sure you want to delete this book?',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20), // مسافة بين النص والأزرار
+            const SizedBox(height: 20), 
             Row(
               mainAxisAlignment:
-                  MainAxisAlignment.spaceEvenly, // توزيع الأزرار بشكل متساوٍ
+                  MainAxisAlignment.spaceEvenly,
               children: [
                 InkWell(
                   onTap: () {
