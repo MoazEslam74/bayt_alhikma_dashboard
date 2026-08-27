@@ -21,13 +21,68 @@ class _userReportsState extends State<userReports> {
       body: ListView(
         children: [
           Container(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            margin: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: AppStyles.lightBeige,
+              border: Border.all(color: AppStyles.primaryGold),
+            ),
             child: Column(
               children: [
-                Text('####',style: TextStyle(fontSize: 22),),
-                Text('reorts',style: TextStyle(fontSize: 16),)
+                Text(
+                  '####',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                Text('Report', style: TextStyle(fontSize: 16)),
               ],
             ),
-          )
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container _reportedUser(
+    String defendant,
+    String imgURL,
+    String reporter,
+    String reason,
+    Timestamp timestamp,
+  ) {
+    return Container(
+      child: Row(
+        children: [
+          ///Img
+          Column(
+            children: [
+              Text(defendant),
+              Text(reporter),
+              Text('$timestamp'),
+              ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) {
+                      return AlertDialog(
+                        title: Text('Reason of the report'),
+                        content: Text(reason),
+                        actions: [
+                          TextButton(
+                          onPressed: () {
+                              Navigator.of(ctx).pop();
+                            },
+                            child: Text('Cancel'),
+                          ),            
+                        ],
+                      );
+                    },
+                  );
+                },
+                child: Row(children: [Icon(Icons.report), Text('Reason')]),
+              ),
+            ],
+          ),
         ],
       ),
     );
