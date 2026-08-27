@@ -15,7 +15,9 @@ class _UserManagmentState extends State<UserManagment> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppStyles.pageBackground,
       appBar: AppBar(
+        backgroundColor: AppStyles.primaryGold,
         title: const Text('User Management'),
       ),
       body: Container(
