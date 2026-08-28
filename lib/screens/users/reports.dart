@@ -1,3 +1,4 @@
+import 'package:bayt_alhikma_dashboard/model/avatars.dart';
 import 'package:bayt_alhikma_dashboard/model/report.dart';
 import 'package:bayt_alhikma_dashboard/model/user.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class userReports extends StatefulWidget {
 
 class _userReportsState extends State<userReports> {
   final _firestore = FirebaseFirestore.instance;
+  final avatars_list = Avatars().getAvatars();
   List<User> reportedUsers = [];
   List<Map<String, dynamic>> Reports = [];
   bool isLoading = false;
@@ -164,37 +166,48 @@ class _userReportsState extends State<userReports> {
                         title: Text('Actions'),
                         content: Column(
                           children: [
-                            ElevatedButton(onPressed:() {
-                              showDialog(
-                                context: context,
-                                builder: (ctx) {
-                                  return AlertDialog(
-                                    content: Text('Are you sure you want to delete this account?'),
-                                  );
-                                },
-                              );
-                            } , child: Text('Delete this user')),
-                            ElevatedButton(onPressed:() {
-                              showDialog(
-                                context: context,
-                                builder: (ctx) {
-                                  return AlertDialog(
-                                    content: Column(
-                                      children: [
-                                        Text('How many days of ban you will give to the user?'),
-                                        
-                                        TextField(
-                                          keyboardType: TextInputType.number,
-                                          inputFormatters: [
-                                            FilteringTextInputFormatter.digitsOnly,
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            } , child: Text('Ban the user'))
+                            ElevatedButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) {
+                                    return AlertDialog(
+                                      content: Text(
+                                        'Are you sure you want to delete this account?',
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              child: Text('Delete this user'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) {
+                                    return AlertDialog(
+                                      content: Column(
+                                        children: [
+                                          Text(
+                                            'How many days of ban you will give to the user?',
+                                          ),
+
+                                          TextField(
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              child: Text('Ban the user'),
+                            ),
                           ],
                         ),
                         actions: [
@@ -204,7 +217,6 @@ class _userReportsState extends State<userReports> {
                             },
                             child: Text('Cancel'),
                           ),
-                          
                         ],
                       );
                     },
