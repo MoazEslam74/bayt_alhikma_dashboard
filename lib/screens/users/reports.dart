@@ -159,17 +159,21 @@ class _userReportsState extends State<userReports> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(radius: 50,child: Image.asset('images/avatars/${profile_rep.docs.first.data()['avatar']}')),
+          Badge(backgroundColor: Colors.blue,
+          label: Text('Reporter' ,style: TextStyle(fontSize: 18),),
+          offset: Offset(-75, 105),
+            child: Column(
+              children: [
+                Text(reporter,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
+                CircleAvatar( radius: 50,child: Image.asset('images/avatars/${profile_rep.docs.first.data()['avatar']}')),
+              ],
+            )),
           SizedBox(width: 10,),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 10),
-              Text(defendant),
-              SizedBox(height: 10),
-              Text(reporter),
-              SizedBox(height: 10),
-              Text(formattedTimestamp),
+
+              
               SizedBox(height: 10),
               ElevatedButton(
                 style: ButtonStyle(
@@ -178,6 +182,7 @@ class _userReportsState extends State<userReports> {
                 ),
                 onPressed: () {
                   showDialog(
+                    fullscreenDialog: false,
                     context: context,
                     builder: (ctx) {
                       return AlertDialog(
@@ -207,6 +212,7 @@ class _userReportsState extends State<userReports> {
                 ),
                 onPressed: () {
                   showDialog(
+                    fullscreenDialog: false,
                     context: context,
                     builder: (ctx) {
                       return AlertDialog(
@@ -231,6 +237,7 @@ class _userReportsState extends State<userReports> {
                             ElevatedButton(
                               onPressed: () {
                                 showDialog(
+                                  fullscreenDialog: false,
                                   context: context,
                                   builder: (ctx) {
                                     return AlertDialog(
@@ -276,10 +283,20 @@ class _userReportsState extends State<userReports> {
                   ],
                 ),
               ),
+
+              SizedBox(height: 10),
+              Text(formattedTimestamp),
             ],
           ),
           SizedBox(width: 10,),
-          CircleAvatar(radius: 50,child: Image.asset('images/avatars/${profile_def.docs.first.data()['avatar']}')),        ],
+          Badge(label: Text('Defendant',style: TextStyle(fontSize: 18),),
+          offset: Offset(-80, 105),
+            child: Column(
+              children: [
+                Text(defendant,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
+                CircleAvatar(radius: 50,child: Image.asset('images/avatars/${profile_def.docs.first.data()['avatar']}')),
+              ],
+            )),        ],
       ),
     );
   }
