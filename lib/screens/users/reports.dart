@@ -20,6 +20,29 @@ class _userReportsState extends State<userReports> {
   List<User> reportedUsers = [];
   List<Map<String, dynamic>> Reports = [];
   bool isLoading = false;
+
+  Future<List<QuerySnapshot<Map<String, dynamic>>>> getUserProfile(
+  String defendant,
+  String reporter,
+) async {
+  try {
+    final defendantSnapshot = await _firestore
+        .collection('profils')
+        .where('username', isEqualTo: defendant)
+        .get();
+
+    final reporterSnapshot = await _firestore
+        .collection('profils')
+        .where('username', isEqualTo: reporter)
+        .get();
+
+    return [reporterSnapshot, defendantSnapshot];
+  } catch (e) {
+    debugPrint('Error fetching Users: $e');
+    return [];
+  }
+}
+
   Future<void> getReports() async {
     setState(() => isLoading = true);
     try {
@@ -77,11 +100,33 @@ class _userReportsState extends State<userReports> {
               ),
             ),
             for (final report in Reports)
-              _reportedUser(
-                report['defendant'] as String,
-                report['reporter'] as String,
-                report['reason'] as String,
-                report['timestamp'] as Timestamp,
+              FutureBuilder<List<QuerySnapshot<Map<String, dynamic>>>>(
+                future: getUserProfile(
+                  report['defendant'] as String, 
+                  report['reporter'] as String
+                ),
+                builder: (context, snapshot) {
+                  
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  
+                  
+                  if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                    return SizedBox(); 
+                  }
+
+                  
+                  final profiles = snapshot.data!;
+                  return _reportedUser(
+                    report['defendant'] as String,
+                    profiles[0],
+                    profiles[1],
+                    report['reporter'] as String,
+                    report['reason'] as String,
+                    report['timestamp'] as Timestamp,
+                  );
+                },
               ),
           ],
         ),
@@ -91,8 +136,8 @@ class _userReportsState extends State<userReports> {
 
   Container _reportedUser(
     String defendant,
-    // String imgURL_def,
-    // String imgURL_rep,
+    QuerySnapshot<Map<String, dynamic>> profile_rep,
+    QuerySnapshot<Map<String, dynamic>> profile_def,
     String reporter,
     String reason,
     Timestamp timestamp,
@@ -112,8 +157,10 @@ class _userReportsState extends State<userReports> {
         border: Border.all(color: AppStyles.primaryGold, width: 2.0),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ///Img
+          CircleAvatar(radius: 50,child: Image.asset('images/avatars/${profile_rep.docs.first.data()['avatar']}')),
+          SizedBox(width: 10,),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -231,8 +278,8 @@ class _userReportsState extends State<userReports> {
               ),
             ],
           ),
-          //img
-        ],
+          SizedBox(width: 10,),
+          CircleAvatar(radius: 50,child: Image.asset('images/avatars/${profile_def.docs.first.data()['avatar']}')),        ],
       ),
     );
   }
