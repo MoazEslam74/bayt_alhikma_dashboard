@@ -22,26 +22,26 @@ class _userReportsState extends State<userReports> {
   bool isLoading = false;
 
   Future<List<QuerySnapshot<Map<String, dynamic>>>> getUserProfile(
-  String defendant,
-  String reporter,
-) async {
-  try {
-    final defendantSnapshot = await _firestore
-        .collection('profils')
-        .where('username', isEqualTo: defendant)
-        .get();
+    String defendant,
+    String reporter,
+  ) async {
+    try {
+      final defendantSnapshot = await _firestore
+          .collection('profils')
+          .where('username', isEqualTo: defendant)
+          .get();
 
-    final reporterSnapshot = await _firestore
-        .collection('profils')
-        .where('username', isEqualTo: reporter)
-        .get();
+      final reporterSnapshot = await _firestore
+          .collection('profils')
+          .where('username', isEqualTo: reporter)
+          .get();
 
-    return [reporterSnapshot, defendantSnapshot];
-  } catch (e) {
-    debugPrint('Error fetching Users: $e');
-    return [];
+      return [reporterSnapshot, defendantSnapshot];
+    } catch (e) {
+      debugPrint('Error fetching Users: $e');
+      return [];
+    }
   }
-}
 
   Future<void> getReports() async {
     setState(() => isLoading = true);
@@ -69,15 +69,45 @@ class _userReportsState extends State<userReports> {
     getReports();
   }
 
-  Future<void> applyBan() async{
+  Future<void> applyBan(String username, int banDays) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('profils')
+          .where('username', isEqualTo: username)
+          .get();
 
-  }
-  Future<void>deleteUser()async{
+      if (querySnapshot.docs.isEmpty) {
+        debugPrint('No profile found for username: $username');
+        return;
+      }
 
+      final profileDoc = querySnapshot.docs.first;
+      await profileDoc.reference.update({
+        'ban': {'banDays': banDays},
+      });
+    } catch (e) {
+      debugPrint('Error applying the ban: $e');
+    }
   }
-  Future<void>rejectReport()async{
-    
+
+  Future<void> deleteUser() async {}
+  Future<void> rejectReport(int reportID) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('reports')
+          .where('ID', isEqualTo: reportID)
+          .get();
+
+      for (final doc in querySnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      await getReports();
+    } catch (e) {
+      debugPrint('Error in deleting the report: $e');
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     return ModalProgressHUD(
@@ -111,23 +141,23 @@ class _userReportsState extends State<userReports> {
             for (final report in Reports)
               FutureBuilder<List<QuerySnapshot<Map<String, dynamic>>>>(
                 future: getUserProfile(
-                  report['defendant'] as String, 
-                  report['reporter'] as String
+                  report['defendant'] as String,
+                  report['reporter'] as String,
                 ),
                 builder: (context, snapshot) {
-                  
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   }
-                  
-                  
-                  if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                    return SizedBox(); 
+
+                  if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      snapshot.data!.isEmpty) {
+                    return SizedBox();
                   }
 
-                  
                   final profiles = snapshot.data!;
                   return _reportedUser(
+                    report['ID'] as int,
                     report['defendant'] as String,
                     profiles[0],
                     profiles[1],
@@ -144,6 +174,7 @@ class _userReportsState extends State<userReports> {
   }
 
   Container _reportedUser(
+    int reportID,
     String defendant,
     QuerySnapshot<Map<String, dynamic>> profile_rep,
     QuerySnapshot<Map<String, dynamic>> profile_def,
@@ -168,21 +199,30 @@ class _userReportsState extends State<userReports> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Badge(backgroundColor: Colors.blue,
-          label: Text('Reporter' ,style: TextStyle(fontSize: 18),),
-          offset: Offset(-75, 105),
+          Badge(
+            backgroundColor: Colors.blue,
+            label: Text('Reporter', style: TextStyle(fontSize: 18)),
+            offset: Offset(-75, 105),
             child: Column(
               children: [
-                Text(reporter,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
-                CircleAvatar( radius: 50,child: Image.asset('images/avatars/${profile_rep.docs.first.data()['avatar']}')),
+                Text(
+                  reporter,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                CircleAvatar(
+                  radius: 50,
+                  child: Image.asset(
+                    'images/avatars/${profile_rep.docs.first.data()['avatar']}',
+                  ),
+                ),
               ],
-            )),
-          SizedBox(width: 10,),
+            ),
+          ),
+          SizedBox(width: 10),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            
-            children: [
 
+            children: [
               SizedBox(height: 10),
               ElevatedButton(
                 style: ButtonStyle(
@@ -238,8 +278,14 @@ class _userReportsState extends State<userReports> {
                                         'Are you sure you want to delete this account?',
                                       ),
                                       actions: [
-                                        TextButton(onPressed: (){}, child: Text('Yes')),
-                                        TextButton(onPressed: (){}, child: Text('No')),
+                                        TextButton(
+                                          onPressed: () {},
+                                          child: Text('Yes'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {},
+                                          child: Text('No'),
+                                        ),
                                       ],
                                     );
                                   },
@@ -267,12 +313,17 @@ class _userReportsState extends State<userReports> {
                                                   .digitsOnly,
                                             ],
                                           ),
-                                          
                                         ],
                                       ),
                                       actions: [
-                                        TextButton(onPressed: (){}, child: Text('Apply')),
-                                        TextButton(onPressed: (){}, child: Text('Cancel')),
+                                        TextButton(
+                                          onPressed: () {},
+                                          child: Text('Apply'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {},
+                                          child: Text('Cancel'),
+                                        ),
                                       ],
                                     );
                                   },
@@ -290,8 +341,18 @@ class _userReportsState extends State<userReports> {
                                         'Are you sure you want to reject this report?',
                                       ),
                                       actions: [
-                                        TextButton(onPressed: (){}, child: Text('Yes')),
-                                        TextButton(onPressed: (){}, child: Text('No')),
+                                        TextButton(
+                                          onPressed: () {
+                                            rejectReport(reportID);
+                                            Navigator.of(ctx).pop();
+                                            Navigator.of(ctx).pop();
+                                          },
+                                          child: Text('Yes'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {},
+                                          child: Text('No'),
+                                        ),
                                       ],
                                     );
                                   },
@@ -325,15 +386,26 @@ class _userReportsState extends State<userReports> {
               Text(formattedTimestamp),
             ],
           ),
-          SizedBox(width: 10,),
-          Badge(label: Text('Defendant',style: TextStyle(fontSize: 18),),
-          offset: Offset(-80, 105),
+          SizedBox(width: 10),
+          Badge(
+            label: Text('Defendant', style: TextStyle(fontSize: 18)),
+            offset: Offset(-80, 105),
             child: Column(
               children: [
-                Text(defendant,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
-                CircleAvatar(radius: 50,child: Image.asset('images/avatars/${profile_def.docs.first.data()['avatar']}')),
+                Text(
+                  defendant,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                CircleAvatar(
+                  radius: 50,
+                  child: Image.asset(
+                    'images/avatars/${profile_def.docs.first.data()['avatar']}',
+                  ),
+                ),
               ],
-            )),        ],
+            ),
+          ),
+        ],
       ),
     );
   }
