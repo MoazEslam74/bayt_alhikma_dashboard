@@ -69,6 +69,15 @@ class _userReportsState extends State<userReports> {
     getReports();
   }
 
+  Future<void> applyBan() async{
+
+  }
+  Future<void>deleteUser()async{
+
+  }
+  Future<void>rejectReport()async{
+    
+  }
   @override
   Widget build(BuildContext context) {
     return ModalProgressHUD(
@@ -171,9 +180,9 @@ class _userReportsState extends State<userReports> {
           SizedBox(width: 10,),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            
             children: [
 
-              
               SizedBox(height: 10),
               ElevatedButton(
                 style: ButtonStyle(
@@ -228,6 +237,10 @@ class _userReportsState extends State<userReports> {
                                       content: Text(
                                         'Are you sure you want to delete this account?',
                                       ),
+                                      actions: [
+                                        TextButton(onPressed: (){}, child: Text('Yes')),
+                                        TextButton(onPressed: (){}, child: Text('No')),
+                                      ],
                                     );
                                   },
                                 );
@@ -254,13 +267,37 @@ class _userReportsState extends State<userReports> {
                                                   .digitsOnly,
                                             ],
                                           ),
+                                          
                                         ],
                                       ),
+                                      actions: [
+                                        TextButton(onPressed: (){}, child: Text('Apply')),
+                                        TextButton(onPressed: (){}, child: Text('Cancel')),
+                                      ],
                                     );
                                   },
                                 );
                               },
                               child: Text('Ban the user'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) {
+                                    return AlertDialog(
+                                      content: Text(
+                                        'Are you sure you want to reject this report?',
+                                      ),
+                                      actions: [
+                                        TextButton(onPressed: (){}, child: Text('Yes')),
+                                        TextButton(onPressed: (){}, child: Text('No')),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: Text('Reject the report'),
                             ),
                           ],
                         ),
