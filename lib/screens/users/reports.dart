@@ -235,6 +235,7 @@ class _userReportsState extends State<userReports> {
     late TextEditingController numberOfBanDays;
     numberOfBanDays = TextEditingController();
     return Container(
+      margin: EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(10)),
         color: AppStyles.pageBackground,
@@ -246,7 +247,7 @@ class _userReportsState extends State<userReports> {
           Badge(
             backgroundColor: Colors.blue,
             label: Text('Reporter', style: TextStyle(fontSize: 18)),
-            offset: Offset(-75, 105),
+            offset: Offset(-70, 105),
             child: Column(
               children: [
                 Text(
@@ -254,7 +255,7 @@ class _userReportsState extends State<userReports> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 CircleAvatar(
-                  radius: 50,
+                  radius: 45,
                   child: Image.asset(
                     'images/avatars/${profile_rep.docs.first.data()['avatar']}',
                   ),
@@ -262,7 +263,7 @@ class _userReportsState extends State<userReports> {
               ],
             ),
           ),
-          SizedBox(width: 10),
+          SizedBox(width: 15),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
 
@@ -443,10 +444,10 @@ class _userReportsState extends State<userReports> {
               Text(formattedTimestamp),
             ],
           ),
-          SizedBox(width: 10),
+          SizedBox(width: 15),
           Badge(
             label: Text('Defendant', style: TextStyle(fontSize: 18)),
-            offset: Offset(-80, 105),
+            offset: Offset(-75, 105),
             child: Column(
               children: [
                 Text(
@@ -454,7 +455,7 @@ class _userReportsState extends State<userReports> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 CircleAvatar(
-                  radius: 50,
+                  radius: 45,
                   child: Image.asset(
                     'images/avatars/${profile_def.docs.first.data()['avatar']}',
                   ),
