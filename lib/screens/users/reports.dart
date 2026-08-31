@@ -82,16 +82,59 @@ class _userReportsState extends State<userReports> {
       }
 
       final profileDoc = querySnapshot.docs.first;
-      await profileDoc.reference.update({
-        'ban': {'banDays': banDays},
-      });
+      final currentData = profileDoc.data();
+      final currentBan = Map<String, dynamic>.from(currentData['ban'] ?? {});
+      final banKey = 'banDays_${Timestamp.now().toDate()}';
+
+      currentBan[banKey] = banDays;
+
+      await profileDoc.reference.update({'ban': currentBan});
     } catch (e) {
       debugPrint('Error applying the ban: $e');
     }
   }
 
-  Future<void> deleteUser() async {}
-  Future<void> rejectReport(int reportID) async {
+  Future<bool> checkDefendantState(String defendant) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('profils')
+          .where('username', isEqualTo: defendant)
+          .get();
+      int countDaysOfBan = 0;
+      for (final doc in querySnapshot.docs) {
+        final banDaysMap = doc.data()['ban'];
+        if (banDaysMap is Map) {
+          for (final key in banDaysMap.keys) {
+            final value = banDaysMap[key];
+            countDaysOfBan += value as int;
+            if ( countDaysOfBan >= 5) {
+              return true;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking defendant state: $e');
+    }
+    return false;
+  }
+
+  Future<void> deleteUser(String username) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('profils')
+          .where('username', isEqualTo: username)
+          .get();
+
+      for (final doc in querySnapshot.docs) {
+        await doc.reference.delete();
+      }
+    } catch (e) {
+      debugPrint('Error in deleting the user account: $e');
+    }
+  }
+
+  Future<void> deleteReport(int reportID, bool forRejection) async {
     try {
       final querySnapshot = await _firestore
           .collection('reports')
@@ -189,7 +232,8 @@ class _userReportsState extends State<userReports> {
         '${dateTime.day.toString().padLeft(2, '0')} '
         '${dateTime.hour.toString().padLeft(2, '0')}:'
         '${dateTime.minute.toString().padLeft(2, '0')}';
-
+    late TextEditingController numberOfBanDays;
+    numberOfBanDays = TextEditingController();
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -307,6 +351,7 @@ class _userReportsState extends State<userReports> {
                                           ),
 
                                           TextField(
+                                            controller: numberOfBanDays,
                                             keyboardType: TextInputType.number,
                                             inputFormatters: [
                                               FilteringTextInputFormatter
@@ -317,11 +362,21 @@ class _userReportsState extends State<userReports> {
                                       ),
                                       actions: [
                                         TextButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            applyBan(
+                                              defendant,
+                                              int.parse(numberOfBanDays.text),
+                                            );
+                                            deleteReport(reportID, false);
+                                            Navigator.of(ctx).pop();
+                                            Navigator.of(ctx).pop();
+                                          },
                                           child: Text('Apply'),
                                         ),
                                         TextButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            Navigator.of(ctx).pop();
+                                          },
                                           child: Text('Cancel'),
                                         ),
                                       ],
@@ -343,14 +398,16 @@ class _userReportsState extends State<userReports> {
                                       actions: [
                                         TextButton(
                                           onPressed: () {
-                                            rejectReport(reportID);
+                                            deleteReport(reportID, true);
                                             Navigator.of(ctx).pop();
                                             Navigator.of(ctx).pop();
                                           },
                                           child: Text('Yes'),
                                         ),
                                         TextButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            Navigator.of(ctx).pop();
+                                          },
                                           child: Text('No'),
                                         ),
                                       ],
