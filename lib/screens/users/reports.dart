@@ -100,8 +100,9 @@ class _userReportsState extends State<userReports> {
           .collection('profils')
           .where('username', isEqualTo: defendant)
           .get();
-      int countDaysOfBan = 0;
+      
       for (final doc in querySnapshot.docs) {
+        int countDaysOfBan = 0;
         final banDaysMap = doc.data()['ban'];
         if (banDaysMap is Map) {
           for (final key in banDaysMap.keys) {
