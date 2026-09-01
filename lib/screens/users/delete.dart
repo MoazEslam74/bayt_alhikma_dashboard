@@ -87,14 +87,41 @@ class _deleteUserState extends State<deleteUser> {
   }
 
   Container accountsCard(Map<String, dynamic>accountProfile) {
+    final username = accountProfile['username']?.toString();
+    final email = accountProfile['email']?.toString();
+    final avatar = accountProfile['avatar']?.toString();
+
+    int numberOfBanDays() {
+      int countDaysOfBan = 0;
+      final banDaysMap = accountProfile['ban'];
+      if (banDaysMap is Map) {
+        for (final key in banDaysMap.keys) {
+          final value = banDaysMap[key];
+          countDaysOfBan += value as int;
+        }
+      }
+      return countDaysOfBan;
+    }
+
     return Container(
+      padding: EdgeInsets.all(10),
       margin: EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(10)),
         color: AppStyles.pageBackground,
         border: Border.all(color: AppStyles.primaryGold, width: 2.0),
       ),
-      child: Text('${accountProfile.values.first}'),
+      child: Row(
+        children:[
+          Badge(label:Icon(Icons.error_outline,color: Colors.red,) ,child: CircleAvatar(backgroundColor: Colors.red, radius:50,child:avatar != null ? Image.asset('images/avatars/${avatar}') : Container(
+            color: Colors.red,
+            child:Text('Missing')
+          ))),Column(children: [
+            Text('username:${username != null && username.isNotEmpty ? username : 'missing'}'),
+            Text('email:${email != null && email.isNotEmpty ? email : 'missing'}'),
+            Text('ban days:${numberOfBanDays()}'),
+          ],)]
+      ),
     );
   }
 }
