@@ -24,25 +24,30 @@ class _deleteUserState extends State<deleteUser> {
   Future<void> getUncompleteAccounts() async {}
   Future<void> getIssuedAccounts() async {
     setState(() => isLoading = true);
+    listIssuedAccounts = [];
+
     try {
       final querySnapshot = await _firestore.collection('profils').get();
 
       for (final doc in querySnapshot.docs) {
         int countDaysOfBan = 0;
         final banDaysMap = doc.data()['ban'];
+
         if (banDaysMap is Map) {
-          for (final key in banDaysMap.keys) {
-            final value = banDaysMap[key];
-            countDaysOfBan += value as int;
-          }
-          if (countDaysOfBan >= 5) {
-              listIssuedAccounts.add(doc.data());
+          for (final value in banDaysMap.values) {
+            if (value is int) {
+              countDaysOfBan += value;
             }
+          }
+        }
+
+        if (countDaysOfBan >= 5) {
+          listIssuedAccounts.add(doc.data());
         }
       }
     } catch (e) {
       debugPrint('Error fetching the accounts: $e');
-    }finally {
+    } finally {
       setState(() => isLoading = false);
     }
   }
@@ -86,18 +91,22 @@ class _deleteUserState extends State<deleteUser> {
     );
   }
 
-  Container accountsCard(Map<String, dynamic>accountProfile) {
-    final username = accountProfile['username']?.toString();
-    final email = accountProfile['email']?.toString();
-    final avatar = accountProfile['avatar']?.toString();
+  Container accountsCard(Map<String, dynamic> accountProfile) {
+    final username = accountProfile['username']?.toString() ?? '';
+    final firstname = accountProfile['firstname']?.toString() ?? '';
+    final lastname = accountProfile['lastname']?.toString() ?? '';
+    final email = accountProfile['email']?.toString() ?? '';
+    final avatar = accountProfile['avatar']?.toString() ?? '';
+    final isMissingData = username.isEmpty || email.isEmpty || firstname.isEmpty || lastname.isEmpty || avatar.isEmpty;
 
     int numberOfBanDays() {
       int countDaysOfBan = 0;
       final banDaysMap = accountProfile['ban'];
       if (banDaysMap is Map) {
-        for (final key in banDaysMap.keys) {
-          final value = banDaysMap[key];
-          countDaysOfBan += value as int;
+        for (final value in banDaysMap.values) {
+          if (value is int) {
+            countDaysOfBan += value;
+          }
         }
       }
       return countDaysOfBan;
@@ -112,15 +121,39 @@ class _deleteUserState extends State<deleteUser> {
         border: Border.all(color: AppStyles.primaryGold, width: 2.0),
       ),
       child: Row(
-        children:[
-          Badge(label:Icon(Icons.error_outline,color: Colors.red,) ,child: CircleAvatar(backgroundColor: Colors.red, radius:50,child:avatar != null ? Image.asset('images/avatars/${avatar}') : Container(
-            color: Colors.red,
-            child:Text('Missing')
-          ))),Column(children: [
-            Text('username:${username != null && username.isNotEmpty ? username : 'missing'}'),
-            Text('email:${email != null && email.isNotEmpty ? email : 'missing'}'),
-            Text('ban days:${numberOfBanDays()}'),
-          ],)]
+        children: [
+          Badge(
+            backgroundColor:isMissingData?Colors.amber:Colors.red,
+            label: Row(
+              children: [
+                Icon(
+                  isMissingData ? Icons.warning : Icons.error_outline,
+                  color:Colors.white
+                ),
+                Text(isMissingData?'Uncompleted Account':'Issued Account',style: TextStyle(color: Colors.white),)
+              ],
+            ),
+            child: CircleAvatar(
+              backgroundColor: Colors.red,
+              radius: 50,
+              child: avatar.isNotEmpty
+                  ? Image.asset('images/avatars/$avatar')
+                  : Container(
+                      color: Colors.red,
+                      child: Text('Missing'),
+                    ),
+            ),
+          ),
+          SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('username: ${username.isNotEmpty ? username : 'missing'}'),
+              Text('email: ${email.isNotEmpty ? email : 'missing'}'),
+              Text('ban days: ${numberOfBanDays()}'),
+            ],
+          ),
+        ],
       ),
     );
   }
