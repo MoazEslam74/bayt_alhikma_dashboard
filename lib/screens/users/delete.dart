@@ -20,6 +20,7 @@ class _deleteUserState extends State<deleteUser> {
   void initState() {
     super.initState();
     getIssuedAccounts();
+    getUncompleteAccounts();
   }
 
   Future<void> getUncompleteAccounts() async {
@@ -111,25 +112,21 @@ class _deleteUserState extends State<deleteUser> {
               ),
             ),
             SizedBox(height: 20),
-            for (final account in listIssuedAccounts) accountsCard(account),
+            for (final account in listIssuedAccounts) accountsCard(account, true, false),
+            for (final account in listUncompleteAccounts) accountsCard(account, false, true),
           ],
         ),
       ),
     );
   }
 
-  Container accountsCard(Map<String, dynamic> accountProfile) {
+  Container accountsCard(Map<String, dynamic> accountProfile,bool isIssuedAccount,bool isMissingData) {
     final username = accountProfile['username']?.toString() ?? '';
     final firstname = accountProfile['firstname']?.toString() ?? '';
     final lastname = accountProfile['lastname']?.toString() ?? '';
     final email = accountProfile['email']?.toString() ?? '';
     final avatar = accountProfile['avatar']?.toString() ?? '';
-    final isMissingData =
-        username.isEmpty ||
-        email.isEmpty ||
-        firstname.isEmpty ||
-        lastname.isEmpty ||
-        avatar.isEmpty;
+    
 
     int numberOfBanDays() {
       int countDaysOfBan = 0;
