@@ -21,7 +21,35 @@ class _deleteUserState extends State<deleteUser> {
     super.initState();
     getIssuedAccounts();
   }
-  Future<void> getUncompleteAccounts() async {}
+
+  Future<void> getUncompleteAccounts() async {
+    setState(() => isLoading = true);
+    try {
+      final querySnapshot = await _firestore.collection('profils').get();
+      for (final doc in querySnapshot.docs) {
+        final username = doc['username']?.toString() ?? '';
+        final firstname = doc['firstname']?.toString() ?? '';
+        final lastname = doc['lastname']?.toString() ?? '';
+        final email = doc['email']?.toString() ?? '';
+        final avatar = doc['avatar']?.toString() ?? '';
+        final isMissingData =
+            username.isEmpty ||
+            email.isEmpty ||
+            firstname.isEmpty ||
+            lastname.isEmpty ||
+            avatar.isEmpty;
+
+        if (isMissingData) {
+          listUncompleteAccounts.add(doc.data());
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching the accounts: $e');
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
   Future<void> getIssuedAccounts() async {
     setState(() => isLoading = true);
     listIssuedAccounts = [];
@@ -75,16 +103,15 @@ class _deleteUserState extends State<deleteUser> {
               child: Column(
                 children: [
                   Text(
-                    '${listIssuedAccounts.length+listUncompleteAccounts.length}',
+                    '${listIssuedAccounts.length + listUncompleteAccounts.length}',
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   Text('Issued Accounts', style: TextStyle(fontSize: 16)),
                 ],
               ),
             ),
-            SizedBox(height: 20,),
-            for(final account in listIssuedAccounts)
-            accountsCard(account)
+            SizedBox(height: 20),
+            for (final account in listIssuedAccounts) accountsCard(account),
           ],
         ),
       ),
@@ -97,7 +124,12 @@ class _deleteUserState extends State<deleteUser> {
     final lastname = accountProfile['lastname']?.toString() ?? '';
     final email = accountProfile['email']?.toString() ?? '';
     final avatar = accountProfile['avatar']?.toString() ?? '';
-    final isMissingData = username.isEmpty || email.isEmpty || firstname.isEmpty || lastname.isEmpty || avatar.isEmpty;
+    final isMissingData =
+        username.isEmpty ||
+        email.isEmpty ||
+        firstname.isEmpty ||
+        lastname.isEmpty ||
+        avatar.isEmpty;
 
     int numberOfBanDays() {
       int countDaysOfBan = 0;
@@ -123,14 +155,17 @@ class _deleteUserState extends State<deleteUser> {
       child: Row(
         children: [
           Badge(
-            backgroundColor:isMissingData?Colors.amber:Colors.red,
+            backgroundColor: isMissingData ? Colors.amber : Colors.red,
             label: Row(
               children: [
                 Icon(
                   isMissingData ? Icons.warning : Icons.error_outline,
-                  color:Colors.white
+                  color: Colors.white,
                 ),
-                Text(isMissingData?'Uncompleted Account':'Issued Account',style: TextStyle(color: Colors.white),)
+                Text(
+                  isMissingData ? 'Uncompleted Account' : 'Issued Account',
+                  style: TextStyle(color: Colors.white),
+                ),
               ],
             ),
             child: CircleAvatar(
@@ -138,10 +173,7 @@ class _deleteUserState extends State<deleteUser> {
               radius: 50,
               child: avatar.isNotEmpty
                   ? Image.asset('images/avatars/$avatar')
-                  : Container(
-                      color: Colors.red,
-                      child: Text('Missing'),
-                    ),
+                  : Container(color: Colors.red, child: Text('Missing')),
             ),
           ),
           SizedBox(width: 12),
