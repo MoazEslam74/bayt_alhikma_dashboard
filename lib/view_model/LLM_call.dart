@@ -12,11 +12,14 @@ Future<String?> generateBookDescription({
   const String endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
   // Build the prompt dynamically.
-  String prompt =
-      "Write an engaging and concise book description for the book '$bookTitle' by '$authorName'. "
+    final String prompt = language.toUpperCase() == 'AR'
+    ? "أولاً، استخرج وصفًا دقيقًا وموجزًا لكتاب '$bookTitle' للمؤلف '$authorName' باللغة الإنجليزية لضمان صحة المعلومات. "
+      "ثانيًا، قم بترجمة هذا الوصف باحترافية وسلاسة إلى اللغة العربية. "
+      "يجب أن يكون الناتج النهائي باللغة العربية ($language) فقط. "
+      "لا تكتب النص الإنجليزي في إجابتك، ولا تتضمن أي حشو محادثة أو مقدمات، أعطني الوصف العربي النهائي مباشرة."
+    : "Write an engaging and concise book description for the book '$bookTitle' by '$authorName'. "
       "The output MUST be exactly in this language: $language. "
       "Do not include any conversational filler, just the book description.";
-
   try {
     final response = await http.post(
       Uri.parse(endpoint),
