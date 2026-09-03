@@ -22,27 +22,52 @@ class _deleteUserState extends State<deleteUser> {
     getIssuedAccounts();
     getUncompleteAccounts();
   }
+  Future<void> deleteIssuedAccount(String username,bool isIssuedAccount,bool isMissingData)async{
+    setState(() => isLoading = true);
+              try {
+                final querySnapshot = await _firestore
+                    .collection('profils')
+                    .where('username', isEqualTo: username)
+                    .get();
 
+                for (final doc in querySnapshot.docs) {
+                  await doc.reference.delete();
+                }
+
+                if (isIssuedAccount) {
+                  listIssuedAccounts.removeWhere((account) => account['username'] == username);
+                } else if (isMissingData) {
+                  listUncompleteAccounts.removeWhere((account) => account['username'] == username);
+                }
+              } catch (e) {
+                debugPrint('Error deleting the account: $e');
+              } finally {
+                setState(() => isLoading = false);
+              }
+  }
   Future<void> getUncompleteAccounts() async {
     setState(() => isLoading = true);
     try {
       final querySnapshot = await _firestore.collection('profils').get();
       for (final doc in querySnapshot.docs) {
-        final username = doc['username']?.toString() ?? '';
-        final firstname = doc['firstname']?.toString() ?? '';
-        final lastname = doc['lastname']?.toString() ?? '';
-        final email = doc['email']?.toString() ?? '';
-        final avatar = doc['avatar']?.toString() ?? '';
-        final isMissingData =
-            username.isEmpty ||
-            email.isEmpty ||
+        final data = doc.data();
+
+        final username = data['username']?.toString().trim() ?? '';
+        final firstname = data['firstname']?.toString().trim() ?? '';
+        final lastname = data['lastname']?.toString().trim() ?? '';
+        final email = data['email']?.toString().trim() ?? '';
+        final avatar = data['avatar']?.toString().trim() ?? '';
+
+        final isMissingData = username.isEmpty ||
             firstname.isEmpty ||
             lastname.isEmpty ||
+            email.isEmpty ||
             avatar.isEmpty;
 
         if (isMissingData) {
-          listUncompleteAccounts.add(doc.data());
+          listUncompleteAccounts.add(data);
         }
+        print('${listUncompleteAccounts.length} Uncomplete Accounts');
       }
     } catch (e) {
       debugPrint('Error fetching the accounts: $e');
@@ -88,7 +113,7 @@ class _deleteUserState extends State<deleteUser> {
       child: Scaffold(
         backgroundColor: AppStyles.pageBackground,
         appBar: AppBar(
-          title: Text('Delete issued accounts'),
+          title: Text('Manage issued accounts'),
           backgroundColor: AppStyles.primaryGold,
         ),
         body: ListView(
@@ -121,12 +146,11 @@ class _deleteUserState extends State<deleteUser> {
   }
 
   Container accountsCard(Map<String, dynamic> accountProfile,bool isIssuedAccount,bool isMissingData) {
-    final username = accountProfile['username']?.toString() ?? '';
-    final firstname = accountProfile['firstname']?.toString() ?? '';
-    final lastname = accountProfile['lastname']?.toString() ?? '';
-    final email = accountProfile['email']?.toString() ?? '';
-    final avatar = accountProfile['avatar']?.toString() ?? '';
-    
+    final username = accountProfile['username']?.toString().trim() ?? '';
+    final firstname = accountProfile['firstname']?.toString().trim() ?? '';
+    final lastname = accountProfile['lastname']?.toString().trim() ?? '';
+    final email = accountProfile['email']?.toString().trim() ?? '';
+    final avatar = accountProfile['avatar']?.toString().trim() ?? '';
 
     int numberOfBanDays() {
       int countDaysOfBan = 0;
@@ -174,14 +198,57 @@ class _deleteUserState extends State<deleteUser> {
             ),
           ),
           SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('username: ${username.isNotEmpty ? username : 'missing'}'),
-              Text('email: ${email.isNotEmpty ? email : 'missing'}'),
-              Text('ban days: ${numberOfBanDays()}'),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('username: ${username.isNotEmpty ? username : 'missing'}'),
+                Text(
+                  'email: ${email.isNotEmpty ? email : 'missing'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text('ban days: ${numberOfBanDays()}'),
+              ],
+            ),
           ),
+          Column(
+            children: [
+              ElevatedButton(
+                onPressed: (){
+                  deleteIssuedAccount(username,isIssuedAccount,isMissingData);
+                },
+                style: ElevatedButton.styleFrom(
+                  fixedSize: Size(80, 40),
+                  padding:EdgeInsets.symmetric(horizontal: 15, vertical: 1),
+                  backgroundColor: AppStyles.primaryGold,
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.delete,color:Colors.white),
+                    Text('Delete',style:TextStyle(color:Colors.white)),
+                  ],
+                ),
+              ),
+              isMissingData?
+              ElevatedButton(
+                onPressed: (){
+                  
+                },
+                style: ElevatedButton.styleFrom(
+                  fixedSize: Size(80, 40),
+                  padding:EdgeInsets.symmetric(horizontal: 15, vertical: 1),
+                  backgroundColor: AppStyles.primaryGold,
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.edit,color:Colors.white),
+                    Text('Edit ',style:TextStyle(color:Colors.white)),
+                  ],
+                ),
+              ):SizedBox(height: 0,),
+            ],
+          )
         ],
       ),
     );
