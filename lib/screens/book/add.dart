@@ -1,3 +1,4 @@
+import 'package:bayt_alhikma_dashboard/screens/book/webView.dart';
 import 'package:bayt_alhikma_dashboard/view_model/LLM_call.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -226,7 +227,12 @@ class _addBookState extends State<addBook> {
               buildTextField('Category', categoryController),
               SizedBox(height: 20),
 
-              buildTextField('Image URL', imageUrlController),
+              // buildTextField('Image URL', imageUrlController),
+              ImageSearchFieldWidget(
+                controller: imageUrlController,
+                titleEnController: bookTitleEnController,
+                titleArController: bookTitleArController,
+              ),
               SizedBox(height: 20),
 
               buildTextField('Audio URL', audioUrlController),
@@ -397,6 +403,78 @@ class _SpecialTextFieldWidgetState extends State<SpecialTextFieldWidget> {
               : null,
 
           border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+  
+}
+class ImageSearchFieldWidget extends StatelessWidget {
+  final TextEditingController controller;
+  final TextEditingController titleEnController;
+  final TextEditingController titleArController;
+
+  const ImageSearchFieldWidget({
+    Key? key,
+    required this.controller,
+    required this.titleEnController,
+    required this.titleArController,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: AppStyles.primaryGold.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(3, 3),
+          ),
+        ],
+      ),
+      child: TextField(
+        cursorColor: Colors.black87,
+        strutStyle: const StrutStyle(height: 1.5),
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: 'Image URL',
+          labelStyle: const TextStyle(fontSize: 16, color: Colors.black54),
+          border: InputBorder.none,
+          suffixIcon: IconButton(
+            icon: Icon(Icons.image_search, color: AppStyles.primaryGold),
+            onPressed: () {
+              // نأخذ اسم الكتاب بالعربي أو بالإنجليزي للبحث عنه
+              String bookName = titleArController.text.isNotEmpty
+                  ? titleArController.text
+                  : titleEnController.text;
+
+              if (bookName.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter Book Title first!')),
+                );
+                return;
+              }
+
+              // فتح شاشة البحث وتمرير الرابط المنسوخ إلى הـ Controller
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GoogleImageSearchScreen(
+                    bookName: bookName,
+                    onLinkCopied: (url) {
+                      controller.text = url; // هذه الخطوة تملأ النص مباشرة
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

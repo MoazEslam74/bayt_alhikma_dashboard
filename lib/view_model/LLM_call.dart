@@ -7,11 +7,11 @@ Future<String?> generateBookDescription({
   required String authorName,
   required String language,
 }) async {
-  // ⚠️ لا تنسَ وضع مفتاح الـ API الخاص بك
+  // ⚠️ Remember to add your API key.
   String groqApiKey = dotenv.env['groqApiKey'] ?? '';
   const String endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
-  // تجهيز الـ Prompt بشكل ديناميكي
+  // Build the prompt dynamically.
   String prompt =
       "Write an engaging and concise book description for the book '$bookTitle' by '$authorName'. "
       "The output MUST be exactly in this language: $language. "
@@ -26,7 +26,7 @@ Future<String?> generateBookDescription({
       },
       body: jsonEncode({
         "model":
-            "llama-3.3-70b-versatile", // استخدام موديل أقوى من لاما 3 للحصول على صياغة ممتازة
+            "openai/gpt-oss-120b", 
         "messages": [
           {
             "role": "system",
@@ -35,13 +35,13 @@ Future<String?> generateBookDescription({
           },
           {"role": "user", "content": prompt},
         ],
-        "temperature": 0.7, // نسبة جيدة للتوازن بين الإبداع والدقة
-        "max_tokens": 400, // حد أقصى للكلمات مناسب لوصف كتاب
+        "temperature": 0.7, // A good balance between creativity and accuracy.
+        "max_tokens": 400, // A suitable maximum length for a book description.
       }),
     );
 
     if (response.statusCode == 200) {
-      // معالجة الـ JSON (استخدمنا utf8.decode لحل مشاكل اللغة العربية إن وجدت)
+      // Parse the JSON. utf8.decode handles potential Arabic encoding issues.
       final responseBody = utf8.decode(response.bodyBytes);
       final data = jsonDecode(responseBody);
       final aiResponse = data['choices'][0]['message']['content'];
